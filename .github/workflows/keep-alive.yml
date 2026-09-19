@@ -1,0 +1,49 @@
+# Manté despert el projecte de Supabase.
+#
+# El pla gratuït pausa els projectes al cap d'una setmana sense cap petició.
+# Aquesta acció en fa una cada tres dies perquè això no passi mai.
+#
+# No cal configurar res: llegeix l'adreça i la clau del config.js del repo.
+# Totes dues són públiques per disseny, o sigui que no hi ha cap secret aquí.
+
+name: Mantenir Supabase despert
+
+on:
+  schedule:
+    - cron: "17 6 */3 * *"     # cada 3 dies a les 06:17 UTC
+  workflow_dispatch:            # i quan el llancis tu a mà
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Llegir config.js
+        id: cfg
+        run: |
+          URL=$(grep -oP 'url:\s*"\K[^"]+' config.js)
+          KEY=$(grep -oP 'anonKey:\s*"\K[^"]+' config.js)
+          if [ -z "$URL" ] || [[ "$URL" == *"EL-TEU-PROJECTE"* ]]; then
+            echo "::notice::config.js encara no està configurat. No faig res."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "::add-mask::$KEY"
+            echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trucar a Supabase
+        if: steps.cfg.outputs.skip != 'true'
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "apikey: ${{ steps.cfg.outputs.key }}" \
+            "${{ steps.cfg.outputs.url }}/rest/v1/")
+          echo "Resposta: HTTP $CODE"
+          # 200 i 401 volen dir que el projecte està despert i responent.
+          # Qualsevol 5xx o cap resposta vol dir que està pausat o caigut.
+          if [ "$CODE" -ge 500 ] || [ "$CODE" -eq 000 ]; then
+            echo "::error::El projecte sembla pausat o caigut (HTTP $CODE)."
+            exit 1
+          fi
+          echo "::notice::Projecte despert."
