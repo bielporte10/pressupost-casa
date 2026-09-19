@@ -13,7 +13,7 @@
    On trobar-los: Supabase → Project Settings → API
    ------------------------------------------------------------ */
 
-const CONFIG = {
+var CONFIG = {
   url:     "https://uoqmsvbsjrmrqhjjrdpz.supabase.co",
   anonKey: "sb_publishable_T-w_cFkjhWVWDTrAFlE0DQ_vUhBEQKp"
 };

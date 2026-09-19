@@ -37,7 +37,11 @@ function alerta(cont, tipus, msg){
    ARRENCADA
    ============================================================ */
 (function init(){
-  const bad = !window.CONFIG || !CONFIG.url || CONFIG.url.includes("EL-TEU-PROJECTE");
+  // Compte: config.js declara CONFIG amb "const", i les declaracions const
+  // d'un script clàssic NO es pengen de window. Cal mirar-ho amb typeof.
+  const cfg = (typeof CONFIG !== "undefined") ? CONFIG : null;
+  const bad = !cfg || !cfg.url || !cfg.anonKey
+    || cfg.url.includes("EL-TEU-PROJECTE") || cfg.anonKey.includes("LA-TEVA-CLAU");
   if (bad){
     $("login-config").innerHTML =
       "⚠️ Falta configurar <code>config.js</code> amb l'adreça i la clau del projecte de Supabase. " +
@@ -45,7 +49,7 @@ function alerta(cont, tipus, msg){
     $("form-login").querySelectorAll("input,button").forEach(e => e.disabled = true);
     return;
   }
-  sb = window.supabase.createClient(CONFIG.url, CONFIG.anonKey, {
+  sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
     auth:{ persistSession:true, autoRefreshToken:true }
   });
   sb.auth.onAuthStateChange((_e, sess) => sess?.user ? entrar(sess.user) : sortir());
