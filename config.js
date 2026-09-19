@@ -14,6 +14,6 @@
    ------------------------------------------------------------ */
 
 const CONFIG = {
-  url:     "https://EL-TEU-PROJECTE.supabase.co",
+  url:     "https://uoqmsvbsjrmrqhjjrdpz.supabase.co",
   anonKey: "LA-TEVA-CLAU-ANON"
 };

@@ -190,35 +190,35 @@ end $$;
 --  7. DADES INICIALS
 --  Executa aquest bloc DESPRÉS d'haver creat els usuaris a
 --  Authentication → Users (un per persona).
---  Canvia els correus pels de debò.
+--  No cal tocar res: agafa tots els usuaris que existeixin.
 -- ============================================================
 
 do $$
 declare
-  v_llar uuid;
-  v_marc uuid; v_isabel uuid; v_biel uuid; v_oriol uuid; v_pol uuid;
+  v_llar  uuid;
+  u       record;
+  colors  text[] := array['#4f76c4','#c4607a','#3d9970','#d98d3a','#8a6fc4'];
+  i       integer := 1;
 begin
-  -- la llar
-  insert into public.llars (nom) values ('Casa Porte Bigorda')
-  returning id into v_llar;
+  -- Si ja hi ha una llar creada, no fa res: pots executar-ho dos cops sense por.
+  if exists (select 1 from public.llars) then
+    raise notice 'Ja hi ha una llar creada. No faig res.';
+    return;
+  end if;
 
-  -- els membres (posa els correus reals que hagis creat)
-  select id into v_marc   from auth.users where email = 'marc@exemple.com';
-  select id into v_isabel from auth.users where email = 'isabel@exemple.com';
-  select id into v_biel   from auth.users where email = 'biel@exemple.com';
-  select id into v_oriol  from auth.users where email = 'oriol@exemple.com';
-  select id into v_pol    from auth.users where email = 'pol@exemple.com';
+  insert into public.llars (nom) values ('Casa') returning id into v_llar;
 
-  if v_marc   is not null then insert into public.membres (user_id,llar_id,nom,butxaca,color,es_admin) values (v_marc,  v_llar,'Marc',  500,'#4f76c4',true); end if;
-  if v_isabel is not null then insert into public.membres (user_id,llar_id,nom,butxaca,color,es_admin) values (v_isabel,v_llar,'Isabel',300,'#c4607a',true); end if;
-  -- Els fills van a 0 perquè els seus diners (les recàrregues de les targetes
-  -- de prepagament, 115 €/mes entre els tres) ja compten dins de "fixos".
-  -- Si els voleu controlar aquí, poseu-hi l'import i baixeu "fixos" el mateix.
-  if v_biel   is not null then insert into public.membres (user_id,llar_id,nom,butxaca,color)          values (v_biel,  v_llar,'Biel',   0,'#3d9970'); end if;
-  if v_oriol  is not null then insert into public.membres (user_id,llar_id,nom,butxaca,color)          values (v_oriol, v_llar,'Oriol',  0,'#d98d3a'); end if;
-  if v_pol    is not null then insert into public.membres (user_id,llar_id,nom,butxaca,color)          values (v_pol,   v_llar,'Pol',    0,'#8a6fc4'); end if;
+  -- Dona d'alta TOTS els usuaris que hagis creat a Authentication.
+  -- El nom surt de la part del correu abans de l'arrova; després cadascú
+  -- se'l canvia des d'Ajustos.
+  for u in select id, email from auth.users order by created_at loop
+    insert into public.membres (user_id, llar_id, nom, butxaca, color)
+    values (u.id, v_llar, initcap(split_part(u.email,'@',1)), 0, colors[((i-1) % 5) + 1])
+    on conflict (user_id) do nothing;
+    i := i + 1;
+  end loop;
 
-  -- els límits del pressupost
+  -- Els límits del pressupost
   insert into public.categories (llar_id,bloc,nom,limit_mes,ordre) values
     (v_llar,'CASA','Supermercat',600,1),
     (v_llar,'CASA','Cotxe: benzina i pàrquing',280,2),
@@ -231,9 +231,10 @@ begin
     (v_llar,'FAMÍLIA','Fons de vacances',350,9),
     (v_llar,'MARGE','Pendent d''assignar',338,10);
 
-  -- ingressos, fixos i objectiu
   insert into public.config (llar_id,ingressos,fixos,objectiu)
   values (v_llar, 6964.16, 3358.89, 500);
+
+  raise notice 'Llar creada amb % membres.', i-1;
 end $$;
 
 -- ============================================================
