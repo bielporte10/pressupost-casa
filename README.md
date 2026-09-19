@@ -25,7 +25,7 @@ no retorna cap fila si no es compleix una política, i les polítiques diuen:
 
 | | |
 |---|---|
-| Sense sessió iniciada | 0 files, sempre |
+| Sense sessió iniciada | 0 files, sempre — el rol públic no té permís sobre cap taula |
 | Amb sessió d'una altra llar | 0 files de la teva |
 | Amb sessió de casa | només les files de casa |
 
@@ -43,14 +43,19 @@ i només pot modificar **la seva pròpia** fitxa de membre.
 ### 1. Crear el projecte de Supabase
 
 1. Entra a [supabase.com](https://supabase.com) i crea un compte.
-2. **New project**. Tria la regió **Europe (West)** o **Central EU** perquè les
-   dades es quedin a la UE.
-3. Guarda't la contrasenya de la base de dades que et demana.
+2. **New project**. Tria la regió **Europe** perquè les dades es quedin a la UE.
+3. A l'apartat **Security** de la pantalla de creació:
+   - **Enable Data API** → marcat *(l'app el necessita)*
+   - **Automatically expose new tables** → **desmarcat** *(el SQL ja dona els
+     permisos que calen, taula per taula)*
+   - **Enable automatic RLS** → **marcat** *(si algun dia s'afegeix una taula,
+     neix protegida)*
+4. Guarda't la contrasenya de la base de dades que et demana.
 
 ### 2. Crear les taules i la seguretat
 
 A Supabase, **SQL Editor → New query**, enganxa-hi tot
-[`supabase-setup.sql`](supabase-setup.sql) **fins al punt 5** i prem **Run**.
+[`supabase-setup.sql`](supabase-setup.sql) **fins al punt 6** i prem **Run**.
 
 ### 3. Crear els usuaris
 
@@ -63,7 +68,7 @@ desactivant *Enable signups*.
 
 ### 4. Donar-los d'alta a la llar
 
-Torna al SQL Editor, agafa el **bloc 6** del mateix fitxer, canvia els correus
+Torna al SQL Editor, agafa el **bloc 7** del mateix fitxer, canvia els correus
 d'exemple pels de debò i executa'l. Això crea la llar, els membres, les
 categories i els límits.
 

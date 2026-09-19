@@ -96,7 +96,27 @@ alter table public.categories force row level security;
 alter table public.config     force row level security;
 alter table public.moviments  force row level security;
 
--- ---------- 4. POLÍTIQUES ----------
+-- ---------- 4. PERMISOS DE TAULA ----------
+-- Si has creat el projecte amb "Automatically expose new tables"
+-- desmarcat (recomanat), les taules no són accessibles fins que es
+-- doni permís explícitament. Això és una segona capa per sota del RLS:
+--
+--   permisos  -> decideixen QUINES TAULES existeixen per a l'API
+--   RLS       -> decideix QUINES FILES en surten
+--
+-- El rol "anon" (sense sessió) no rep cap permís sobre cap taula.
+
+grant usage on schema public to anon, authenticated;
+
+revoke all on all tables in schema public from anon;
+
+grant select                         on public.llars      to authenticated;
+grant select, update                 on public.membres    to authenticated;
+grant select, insert, update, delete on public.categories to authenticated;
+grant select, insert, update, delete on public.config     to authenticated;
+grant select, insert, update, delete on public.moviments  to authenticated;
+
+-- ---------- 5. POLÍTIQUES ----------
 
 -- LLARS: només la teva, i només llegir-la.
 drop policy if exists llars_select on public.llars;
@@ -153,7 +173,7 @@ create policy moviments_delete on public.moviments
   for delete to authenticated
   using (user_id = auth.uid());
 
--- ---------- 5. TEMPS REAL ----------
+-- ---------- 6. TEMPS REAL ----------
 -- Perquè quan un apunti una despesa, als altres els aparegui sola.
 
 do $$
@@ -167,7 +187,7 @@ begin
 end $$;
 
 -- ============================================================
---  6. DADES INICIALS
+--  7. DADES INICIALS
 --  Executa aquest bloc DESPRÉS d'haver creat els usuaris a
 --  Authentication → Users (un per persona).
 --  Canvia els correus pels de debò.
