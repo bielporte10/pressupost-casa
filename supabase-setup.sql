@@ -195,46 +195,67 @@ end $$;
 
 do $$
 declare
-  v_llar  uuid;
-  u       record;
-  colors  text[] := array['#4f76c4','#c4607a','#3d9970','#d98d3a','#8a6fc4'];
-  i       integer := 1;
+  v_llar uuid;
+  u      record;
+  colors text[] := array['#4f76c4','#c4607a','#3d9970','#d98d3a','#8a6fc4'];
+  n      integer;
+  nous   integer := 0;
 begin
-  -- Si ja hi ha una llar creada, no fa res: pots executar-ho dos cops sense por.
-  if exists (select 1 from public.llars) then
-    raise notice 'Ja hi ha una llar creada. No faig res.';
-    return;
+  ---- la llar (només si encara no n'hi ha cap) ----
+  select id into v_llar from public.llars limit 1;
+  if v_llar is null then
+    insert into public.llars (nom) values ('Casa') returning id into v_llar;
   end if;
 
-  insert into public.llars (nom) values ('Casa') returning id into v_llar;
-
-  -- Dona d'alta TOTS els usuaris que hagis creat a Authentication.
-  -- El nom surt de la part del correu abans de l'arrova; després cadascú
-  -- se'l canvia des d'Ajustos.
-  for u in select id, email from auth.users order by created_at loop
+  ---- els membres ----
+  -- Afegeix qualsevol usuari d'Authentication que encara no sigui membre.
+  -- Pots tornar a executar aquest bloc cada cop que donis d'alta algú nou.
+  select count(*) into n from public.membres;
+  for u in
+    select au.id, au.email from auth.users au
+    where not exists (select 1 from public.membres m where m.user_id = au.id)
+    order by au.created_at
+  loop
     insert into public.membres (user_id, llar_id, nom, butxaca, color)
-    values (u.id, v_llar, initcap(split_part(u.email,'@',1)), 0, colors[((i-1) % 5) + 1])
-    on conflict (user_id) do nothing;
-    i := i + 1;
+    values (
+      u.id, v_llar,
+      -- noms i butxaques que ja sabem; la resta, a partir del correu
+      case lower(u.email)
+        when 'marcporte@gmail.com'  then 'Marc'
+        when 'ibigorda@gmail.com'   then 'Isabel'
+        when 'bielporte10@gmail.com' then 'Biel'
+        else initcap(split_part(u.email,'@',1))
+      end,
+      case lower(u.email)
+        when 'marcporte@gmail.com' then 500
+        when 'ibigorda@gmail.com'  then 300
+        else 0
+      end,
+      colors[(n % 5) + 1]
+    );
+    n := n + 1; nous := nous + 1;
   end loop;
 
-  -- Els límits del pressupost
-  insert into public.categories (llar_id,bloc,nom,limit_mes,ordre) values
-    (v_llar,'CASA','Supermercat',600,1),
-    (v_llar,'CASA','Cotxe: benzina i pàrquing',280,2),
-    (v_llar,'CASA','Farmàcia, metges i dentista',130,3),
-    (v_llar,'CASA','Llar i manteniment',80,4),
-    (v_llar,'CASA','Veterinari',67,5),
-    (v_llar,'CASA','Transport públic',10,6),
-    (v_llar,'CASA','Imprevistos',150,7),
-    (v_llar,'FAMÍLIA','Restaurants i sortides',250,8),
-    (v_llar,'FAMÍLIA','Fons de vacances',350,9),
-    (v_llar,'MARGE','Pendent d''assignar',338,10);
+  ---- categories i configuració (només el primer cop) ----
+  if not exists (select 1 from public.categories where llar_id = v_llar) then
+    insert into public.categories (llar_id,bloc,nom,limit_mes,ordre) values
+      (v_llar,'CASA','Supermercat',600,1),
+      (v_llar,'CASA','Cotxe: benzina i pàrquing',280,2),
+      (v_llar,'CASA','Farmàcia, metges i dentista',130,3),
+      (v_llar,'CASA','Llar i manteniment',80,4),
+      (v_llar,'CASA','Veterinari',67,5),
+      (v_llar,'CASA','Transport públic',10,6),
+      (v_llar,'CASA','Imprevistos',150,7),
+      (v_llar,'FAMÍLIA','Restaurants i sortides',250,8),
+      (v_llar,'FAMÍLIA','Fons de vacances',350,9),
+      (v_llar,'MARGE','Pendent d''assignar',338,10);
+  end if;
 
   insert into public.config (llar_id,ingressos,fixos,objectiu)
-  values (v_llar, 6964.16, 3358.89, 500);
+  values (v_llar, 6964.16, 3358.89, 500)
+  on conflict (llar_id) do nothing;
 
-  raise notice 'Llar creada amb % membres.', i-1;
+  raise notice 'Fet. % membres nous, % en total.', nous, n;
 end $$;
 
 -- ============================================================

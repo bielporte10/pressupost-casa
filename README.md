@@ -68,9 +68,12 @@ desactivant *Enable signups*.
 
 ### 4. Donar-los d'alta a la llar
 
-Torna al SQL Editor, agafa el **bloc 7** del mateix fitxer, canvia els correus
-d'exemple pels de debò i executa'l. Això crea la llar, els membres, les
-categories i els límits.
+Torna al SQL Editor, agafa el **bloc 7** del mateix fitxer i executa'l. Crea la
+llar, dona d'alta tots els usuaris que existeixin i posa les categories.
+
+**Es pot tornar a executar les vegades que calgui.** Cada cop que donis d'alta
+algú nou a Authentication, torna a executar el bloc i s'afegirà; el que ja hi
+ha no es toca.
 
 ### 5. Connectar l'app
 
