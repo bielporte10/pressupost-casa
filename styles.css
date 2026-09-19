@@ -127,7 +127,7 @@ input[type=date],input[type=month]{min-height:42px}
 .btn.sm{padding:6px 11px;font-size:13px}
 .btn.block{width:100%}
 .icon-btn{appearance:none;background:none;border:none;cursor:pointer;color:var(--muted);
-  padding:4px 7px;border-radius:6px;font-size:17px;line-height:1}
+  padding:4px 8px;border-radius:6px;font-size:18px;line-height:1;width:auto}
 .icon-btn:hover{background:var(--line-2);color:var(--bad)}
 
 /* ---------- taules ---------- */

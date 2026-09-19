@@ -256,8 +256,18 @@ function pintaMoviments(){
 
   $$("[data-del]").forEach(b => b.onclick = async () => {
     if (!confirm("Esborrar aquest moviment?")) return;
-    const { error } = await sb.from("moviments").delete().eq("id", b.dataset.del);
-    error ? toast("No s'ha pogut esborrar") : (toast("Esborrat"), carregaMes());
+    b.disabled = true;
+    // Amb .select() sabem quantes files s'han esborrat de debò. Sense això,
+    // si el RLS ho rebutja no hi ha error i sembla que hagi funcionat.
+    const { data, error } = await sb.from("moviments")
+      .delete().eq("id", b.dataset.del).select();
+    b.disabled = false;
+    if (error){ toast("Error: " + error.message, 6000); console.error(error); return; }
+    if (!data || data.length === 0){
+      toast("No s'ha esborrat: només pots esborrar els teus moviments", 5000); return;
+    }
+    toast("Esborrat");
+    carregaMes();
   });
 }
 $("filtre-qui").addEventListener("change", pintaMoviments);
