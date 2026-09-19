@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Pressupost familiar compartit: límits per categoria, butxaca personal i objectiu d'estalvi mensual.">
+<title>Pressupost de casa</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div class="login-wrap" id="view-login">
+  <div class="login">
+    <div class="card">
+      <div class="card-b">
+        <h1>Pressupost de casa</h1>
+        <p class="lead">Entra amb el teu correu per veure i apuntar les despeses.</p>
+        <div id="login-alert"></div>
+        <form id="form-login" autocomplete="on">
+          <div class="field">
+            <label for="li-email">Correu</label>
+            <input type="email" id="li-email" required autocomplete="username" inputmode="email" placeholder="tu@exemple.com">
+          </div>
+          <div class="field">
+            <label for="li-pass">Contrasenya</label>
+            <input type="password" id="li-pass" required autocomplete="current-password" minlength="6">
+          </div>
+          <button class="btn block" id="li-btn" type="submit">Entrar</button>
+        </form>
+        <p class="note" style="margin-top:16px">
+          Les dades només les veuen els membres de casa. Ningú més hi té accés,
+          ni encara que trobi aquesta pàgina.
+        </p>
+      </div>
+    </div>
+    <p class="note" id="login-config" style="text-align:center;margin-top:14px"></p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="view-app" hidden>
+  <div class="topbar">
+    <div class="topbar-in">
+      <span class="brand" id="nom-llar">Pressupost de casa</span>
+      <span class="who"><span class="dot" id="jo-dot"></span><span id="jo-nom"></span></span>
+      <button class="btn ghost sm" id="btn-sortir">Sortir</button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="resum"     aria-selected="true">Resum</button>
+      <button class="tab" role="tab" data-tab="persones"  aria-selected="false">Persones</button>
+      <button class="tab" role="tab" data-tab="moviments" aria-selected="false">Moviments</button>
+      <button class="tab" role="tab" data-tab="ajustos"   aria-selected="false">Ajustos</button>
+    </div>
+  </div>
+
+  <div class="shell">
+
+    <!-- apuntar -->
+    <div class="card">
+      <div class="card-h"><h2>Apuntar una despesa</h2></div>
+      <div class="card-b">
+        <form id="form-mov">
+          <div class="grid g-form">
+            <div class="field"><label for="m-data">Data</label><input type="date" id="m-data" required></div>
+            <div class="field" style="grid-column:span 2"><label for="m-cat">Categoria</label><select id="m-cat" required></select></div>
+            <div class="field"><label for="m-imp">Import €</label><input type="number" id="m-imp" step="0.01" min="0.01" required placeholder="0,00" inputmode="decimal"></div>
+            <div class="field" style="grid-column:span 2"><label for="m-nota">Nota</label><input type="text" id="m-nota" maxlength="120" placeholder="opcional"></div>
+            <div class="field"><button class="btn" id="m-btn" type="submit">Apuntar</button></div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>Mes</h2>
+        <input type="month" id="mes" style="max-width:180px">
+      </div>
+    </div>
+
+    <!-- RESUM -->
+    <section id="tab-resum">
+      <div class="hero" id="hero"><div><div class="lbl">Estalvi d'aquest mes</div>
+        <div class="val" id="estalvi">—</div><div class="sub" id="estalvi-sub"></div></div></div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-h"><h2>Despeses de casa i de família</h2></div>
+        <table>
+          <thead><tr><th>Categoria</th><th class="num">Límit</th><th class="num">Gastat</th><th class="num">Queda</th></tr></thead>
+          <tbody id="t-resum"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PERSONES -->
+    <section id="tab-persones" hidden>
+      <div class="people" id="persones"></div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-h"><h2>Butxaca personal · en què se'n va</h2></div>
+        <table>
+          <thead><tr><th>Persona</th><th>Categoria</th><th class="num">Gastat</th></tr></thead>
+          <tbody id="t-persones"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MOVIMENTS -->
+    <section id="tab-moviments" hidden>
+      <div class="card">
+        <div class="card-h">
+          <h2>Moviments del mes</h2>
+          <select id="filtre-qui" style="max-width:170px"></select>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Data</th><th>Qui</th><th>Categoria</th>
+            <th class="num">Import</th><th class="hide-s">Nota</th><th></th>
+          </tr></thead>
+          <tbody id="t-moviments"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AJUSTOS -->
+    <section id="tab-ajustos" hidden>
+      <div class="card">
+        <div class="card-h"><h2>Els números de base</h2></div>
+        <div class="card-b">
+          <div class="grid g3">
+            <div class="field"><label for="c-ing">Ingressos €/mes</label><input type="number" id="c-ing" step="0.01"></div>
+            <div class="field"><label for="c-fix">Despeses fixes €/mes</label><input type="number" id="c-fix" step="0.01"></div>
+            <div class="field"><label for="c-obj">Objectiu d'estalvi €/mes</label><input type="number" id="c-obj" step="0.01"></div>
+          </div>
+          <button class="btn" id="c-desa" style="margin-top:14px">Desar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Límits per categoria</h2></div>
+        <table>
+          <thead><tr><th>Categoria</th><th class="num" style="width:150px">Límit €/mes</th></tr></thead>
+          <tbody id="t-cats"></tbody>
+        </table>
+        <div class="card-b tight"><p class="note">Els canvis es desen en sortir de la casella. Els veuen tots els de casa.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>La meva butxaca</h2></div>
+        <div class="card-b">
+          <div class="grid g2">
+            <div class="field"><label for="p-nom">El meu nom</label><input type="text" id="p-nom" maxlength="30"></div>
+            <div class="field"><label for="p-but">Butxaca personal €/mes</label><input type="number" id="p-but" step="0.01"></div>
+          </div>
+          <button class="btn" id="p-desa" style="margin-top:14px">Desar</button>
+          <p class="note" style="margin-top:12px">Només pots canviar la teva. La dels altres, cadascú la seva.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Còpia de seguretat</h2></div>
+        <div class="card-b">
+          <button class="btn ghost" id="export">Descarregar tot en CSV</button>
+          <p class="note" style="margin-top:12px">Baixa tots els moviments de la llar, de tots els mesos.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
