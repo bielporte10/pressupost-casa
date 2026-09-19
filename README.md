@@ -62,18 +62,24 @@ A Supabase, **SQL Editor → New query**, enganxa-hi tot
 **Authentication → Users → Add user → Create new user**, un per persona.
 Posa-hi correu i contrasenya i marca *Auto Confirm User*.
 
-Per a una família n'hi ha prou amb això. No cal obrir el registre a ningú més:
-de fet val més deixar-lo tancat, a **Authentication → Providers → Email**,
-desactivant *Enable signups*.
+**Tanca el registre públic abans de res**: a **Authentication → Sign In /
+Providers → Email**, desactiva **Allow new users to sign up**.
+
+Si no ho fas, qualsevol pot crear-se un compte al teu projecte. No veuria cap
+dada (no seria membre de cap llar), però et consumiria quota i t'ompliria la
+llista d'usuaris.
 
 ### 4. Donar-los d'alta a la llar
 
 Torna al SQL Editor, agafa el **bloc 7** del mateix fitxer i executa'l. Crea la
 llar, dona d'alta tots els usuaris que existeixin i posa les categories.
 
-**Es pot tornar a executar les vegades que calgui.** Cada cop que donis d'alta
-algú nou a Authentication, torna a executar el bloc i s'afegirà; el que ja hi
-ha no es toca.
+**Es pot tornar a executar les vegades que calgui.** El que ja hi ha no es toca.
+
+El bloc porta una **llista blanca de correus**: només dona d'alta els que hi
+consten. Per afegir algú, posa'l a la llista i torna a executar-lo. Està fet
+així a posta, perquè "dona d'alta tothom que existeixi" seria perillós si
+algun dia el registre quedés obert.
 
 ### 5. Connectar l'app
 

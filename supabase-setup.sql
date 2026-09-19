@@ -193,50 +193,45 @@ end $$;
 --  No cal tocar res: agafa tots els usuaris que existeixin.
 -- ============================================================
 
+--  IMPORTANT: la llista de correus de sota és una llista blanca.
+--  Només s'hi donaran d'alta aquests. Fer-ho així i no "tots els
+--  usuaris que existeixin" és a posta: si algun dia el registre
+--  públic queda obert i un desconegut es crea un compte, tornar a
+--  executar aquest bloc no li donaria accés a les vostres dades.
+
 do $$
 declare
-  v_llar uuid;
-  u      record;
-  colors text[] := array['#4f76c4','#c4607a','#3d9970','#d98d3a','#8a6fc4'];
-  n      integer;
-  nous   integer := 0;
+  v_llar  uuid;
+  u       record;
+  nous    integer := 0;
+  n       integer;
+  -- correu, nom, butxaca, color
+  gent    text[][] := array[
+    ['marcporte@gmail.com',   'Marc',   '500', '#4f76c4'],
+    ['ibigorda@gmail.com',    'Isabel', '300', '#c4607a'],
+    ['bielporte10@gmail.com', 'Biel',   '0',   '#3d9970']
+    -- per afegir-ne més, posa'ls aquí i torna a executar el bloc:
+    -- ,['oriol@exemple.com', 'Oriol', '0', '#d98d3a']
+    -- ,['pol@exemple.com',   'Pol',   '0', '#8a6fc4']
+  ];
 begin
-  ---- la llar (només si encara no n'hi ha cap) ----
   select id into v_llar from public.llars limit 1;
   if v_llar is null then
     insert into public.llars (nom) values ('Casa') returning id into v_llar;
   end if;
 
-  ---- els membres ----
-  -- Afegeix qualsevol usuari d'Authentication que encara no sigui membre.
-  -- Pots tornar a executar aquest bloc cada cop que donis d'alta algú nou.
-  select count(*) into n from public.membres;
-  for u in
-    select au.id, au.email from auth.users au
-    where not exists (select 1 from public.membres m where m.user_id = au.id)
-    order by au.created_at
-  loop
-    insert into public.membres (user_id, llar_id, nom, butxaca, color)
-    values (
-      u.id, v_llar,
-      -- noms i butxaques que ja sabem; la resta, a partir del correu
-      case lower(u.email)
-        when 'marcporte@gmail.com'  then 'Marc'
-        when 'ibigorda@gmail.com'   then 'Isabel'
-        when 'bielporte10@gmail.com' then 'Biel'
-        else initcap(split_part(u.email,'@',1))
-      end,
-      case lower(u.email)
-        when 'marcporte@gmail.com' then 500
-        when 'ibigorda@gmail.com'  then 300
-        else 0
-      end,
-      colors[(n % 5) + 1]
-    );
-    n := n + 1; nous := nous + 1;
+  for i in 1 .. array_length(gent,1) loop
+    for u in
+      select au.id from auth.users au
+      where lower(au.email) = lower(gent[i][1])
+        and not exists (select 1 from public.membres m where m.user_id = au.id)
+    loop
+      insert into public.membres (user_id, llar_id, nom, butxaca, color)
+      values (u.id, v_llar, gent[i][2], gent[i][3]::numeric, gent[i][4]);
+      nous := nous + 1;
+    end loop;
   end loop;
 
-  ---- categories i configuració (només el primer cop) ----
   if not exists (select 1 from public.categories where llar_id = v_llar) then
     insert into public.categories (llar_id,bloc,nom,limit_mes,ordre) values
       (v_llar,'CASA','Supermercat',600,1),
@@ -255,8 +250,20 @@ begin
   values (v_llar, 6964.16, 3358.89, 500)
   on conflict (llar_id) do nothing;
 
+  select count(*) into n from public.membres;
   raise notice 'Fet. % membres nous, % en total.', nous, n;
 end $$;
+
+-- ============================================================
+--  QUI TÉ ACCÉS A LES DADES?
+--  Executa això de tant en tant. Han de sortir només els de casa.
+--  Si hi surt algú que no coneixes, esborra'l de la taula membres
+--  (i de Authentication → Users).
+-- ============================================================
+--
+--   select m.nom, u.email, m.butxaca
+--   from public.membres m join auth.users u on u.id = m.user_id
+--   order by m.creat;
 
 -- ============================================================
 --  COMPROVACIÓ
