@@ -15,5 +15,5 @@
 
 const CONFIG = {
   url:     "https://uoqmsvbsjrmrqhjjrdpz.supabase.co",
-  anonKey: "LA-TEVA-CLAU-ANON"
+  anonKey: "sb_publishable_T-w_cFkjhWVWDTrAFlE0DQ_vUhBEQKp"
 };
