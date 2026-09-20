@@ -234,20 +234,19 @@ begin
 
   if not exists (select 1 from public.categories where llar_id = v_llar) then
     insert into public.categories (llar_id,bloc,nom,limit_mes,ordre) values
-      (v_llar,'CASA','Supermercat',600,1),
-      (v_llar,'CASA','Cotxe: benzina i pàrquing',280,2),
-      (v_llar,'CASA','Farmàcia, metges i dentista',130,3),
-      (v_llar,'CASA','Llar i manteniment',80,4),
-      (v_llar,'CASA','Veterinari',67,5),
-      (v_llar,'CASA','Transport públic',10,6),
-      (v_llar,'CASA','Imprevistos',150,7),
-      (v_llar,'FAMÍLIA','Restaurants i sortides',250,8),
-      (v_llar,'FAMÍLIA','Fons de vacances',350,9),
-      (v_llar,'MARGE','Pendent d''assignar',338,10);
+      (v_llar,'CASA','Supermercat',700,1),
+      (v_llar,'CASA','Cotxe: benzina i pàrquing',290,2),
+      (v_llar,'CASA','Farmàcia, metges i dentista',155,3),
+      (v_llar,'CASA','Llar i manteniment',85,4),
+      (v_llar,'CASA','Veterinari',60,5),
+      (v_llar,'CASA','Transport públic',20,6),
+      (v_llar,'FAMÍLIA','Restaurants i sortides',400,7),
+      (v_llar,'FAMÍLIA','Fons de vacances',150,8),
+      (v_llar,'IMPREVISTOS','Imprevistos',300,99);
   end if;
 
   insert into public.config (llar_id,ingressos,fixos,objectiu)
-  values (v_llar, 6964.16, 3358.89, 500)
+  values (v_llar, 7083.81, 3723.67, 500)
   on conflict (llar_id) do nothing;
 
   select count(*) into n from public.membres;
